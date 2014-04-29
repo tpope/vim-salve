@@ -1,0 +1,68 @@
+*leiningen.txt*  Static support for Leiningen
+
+Author:  Tim Pope <http://tpo.pe/>
+License: Same terms as Vim itself (see |license|)
+
+INTRODUCTION                                    *leiningen*
+
+Leiningen.vim automatically activates when it finds a project.clj in a parent
+directory of the current file.  Most functionality depends on the classpath,
+so `lein classpath` is run on an initial load and cached until project.clj
+or ~/.lein/profiles.clj changes.
+
+REPL SUPPORT                                    *leiningen-repl*
+
+Each time |fireplace| attempts to use a repl connection, leiningen.vim will
+try to automatically connect using target/repl-port or target/repl/repl-port.
+(Fireplace itself supports the newer standard .nrepl-port.)  If none of the 3
+port files exist, :Console! (see below) is invoked to automatically start a
+repl.
+
+                                                *leiningen-:Console*
+:Console                Invoke `lein repl` using |:dispatch-:Start|.
+
+:Console!               Like :Console, but start in the background.
+
+If a suitably fresh repl is running when an updated classpath is required, it
+will be used instead of `lein classpath`.
+
+COMPILER                                        *leiningen-compiler*
+
+The included lein compiler plugin is automatically invoked for Leiningen
+projects so that |:make| (or |dispatch-:Make|) will invoke `lein`.  The
+'errorformat' is adjusted to include the classpath, so that plugins like
+|fireplace| can parse stack traces.
+
+PROJECTIONS                                     *leiningen-projections*
+
+Leiningen projects are |projectionist| projects:
+
+* Alternating jumps between test and implementation.
+* The default :Start task is `lein run`.
+* The default :Dispatch task is to run the tests for the current namespace.
+
+Additionally, the following navigation commands are provided:
+
+                                                *leiningen-:Emain*
+:Emain {file}           Edit a Clojure project file relative to any source
+                        (not test or resource) directory in the classpath.
+
+                                                *leiningen-:Esource*
+:Esource {file}         Edit a Clojure project file relative to the classpath.
+
+                                                *leiningen-:Etest*
+:Etest {file}           Edit a file matching one of **/*-test.clj,
+                        **/test/*.clj, **/t_*.clj, or **/*_spec.clj, relative
+                        to any project test directory in the classpath.
+
+                                                *leiningen-:Eresource*
+:Eresource {file}       Edit an arbitrary project file relative to the
+                        classpath.
+
+ABOUT                                           *leiningen-about*
+
+Grab the latest version or report a bug on GitHub:
+
+http://github.com/tpope/vim-leiningen
+
+ vim:tw=78:et:ft=help:norl:
