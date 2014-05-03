@@ -133,7 +133,7 @@ function! s:path() abort
   elseif has_key(conn, 'path')
     let ts = +get(conn.eval('(.getStartTime (java.lang.management.ManagementFactory/getRuntimeMXBean))', {'session': ''}), 'value', '-2000')[0:-4]
     if ts > projts && ts > profts
-      let response = client.eval(
+      let response = conn.eval(
             \ '[(System/getProperty "path.separator") (System/getProperty "java.class.path")]',
             \ {'session': ''})
       let path = split(eval(response.value[-1][5:-2]), response.value[-1][2])
