@@ -188,7 +188,7 @@ function! s:projectionist_detect() abort
       let main += [path]
     endif
   endfor
-  let projections['*'] = {}
+  let projections['*'] = {'start': 'lein run'}
   call projectionist#append(b:leiningen_root, projections)
   let projections = {}
   for path in test
