@@ -10,6 +10,10 @@ if !exists('g:classpath_cache')
   let g:classpath_cache = '~/.cache/vim/classpath'
 endif
 
+if !isdirectory(expand(g:classpath_cache))
+  call mkdir(expand(g:classpath_cache), 'p')
+endif
+
 function! s:portfile() abort
   if !exists('b:leiningen_root')
     return ''
