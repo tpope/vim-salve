@@ -140,7 +140,7 @@ function! s:path() abort
       let response = conn.eval(
             \ '[(System/getProperty "path.separator") (System/getProperty "java.class.path")]',
             \ {'session': ''})
-      let path = split(eval(response.value[-1][5:-2]), response.value[-1][2])
+      let path = split(eval(response.value[5:-2]), response.value[2])
       call writefile([join(path, ',')], cache)
     endif
   endif
