@@ -195,13 +195,17 @@ function! s:projectionist_detect() abort
   let projections['*'] = {'start': 'lein run'}
   call projectionist#append(b:leiningen_root, projections)
   let projections = {}
+  let to_main_proj = {'type': 'test', 'alternate': map(copy(main), 'v:val."/{}.clj"')}
   for path in test
-    let proj = {'type': 'test', 'alternate': map(copy(main), 'v:val."/{}.clj"')}
+    let proj = to_main_proj
     let projections[path.'/*_test.clj'] = proj
     let projections[path.'/**/test/*.clj'] = proj
     let projections[path.'/**/t_*.clj'] = proj
     let projections[path.'/**/test_*.clj'] = proj
     let projections[path.'/*.clj'] = {'dispatch': ':RunTests {dot|hyphenate}'}
+  endfor
+  for path in spec
+    let projections[path.'/*_spec.clj'] = to_main_proj
   endfor
   for path in main
     let proj = {'type': 'main', 'alternate': map(copy(spec), 'v:val."/{}_spec.clj"')}
