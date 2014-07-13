@@ -92,7 +92,7 @@ function! s:detect(file) abort
     endif
     let previous = ""
     while root !=# previous
-      if filereadable(root . '/project.clj') && join(readfile(root . '/project.clj', '', 50)) =~# '(\s*defproject'
+      if filereadable(root . '/project.clj') && join(readfile(root . '/project.clj', '', 50)) =~# '(\s*defproject\%(\s*{{\)\@!'
         let b:leiningen_root = root
         let b:java_root = root
         break
