@@ -39,11 +39,12 @@ function! s:repl(background, args) abort
   let cd = exists('*haslocaldir') && haslocaldir() ? 'lcd' : 'cd'
   let cwd = getcwd()
   try
+    let cmd = b:leiningen.repl_cmd
     execute cd fnameescape(b:leiningen_root)
     if exists(':Start') == 2
       execute 'Start'.(a:background ? '!' : '') '-title='
             \ . escape(fnamemodify(b:leiningen_root, ':t') . ' repl', ' ')
-            \ 'lein repl'.args
+            \ cmd.args
       if get(get(g:, 'dispatch_last_start', {}), 'handler', 'headless') ==# 'headless'
         return
       endif
@@ -53,9 +54,9 @@ function! s:repl(background, args) abort
       echohl None
       return
     elseif has('win32')
-      execute '!start lein repl'.args
+      execute '!start '.cmd.args
     else
-      execute '!lein repl'.args
+      execute '!'.cmd.args
       return
     endif
   finally
@@ -93,6 +94,20 @@ function! s:detect(file) abort
     let previous = ""
     while root !=# previous
       if filereadable(root . '/project.clj') && join(readfile(root . '/project.clj', '', 50)) =~# '(\s*defproject\%(\s*{{\)\@!'
+        let b:leiningen = { "local_manifest": root.'/project.clj',
+                          \ "global_manifest": expand('~/.lein/profiles.clj'),
+                          \ "root": root,
+                          \ "repl_cmd": "lein repl",
+                          \ "classpath_cmd": "lein -o classpath" }
+        let b:leiningen_root = root
+        let b:java_root = root
+        break
+      elseif filereadable(root . '/build.boot')
+        let b:leiningen = { "local_manifest": root.'/build.boot',
+                          \ "global_manifest": expand('~/.profile.boot'),
+                          \ "root": root,
+                          \ "repl_cmd": "boot repl",
+                          \ "classpath_cmd": "boot show --fake-classpath" }
         let b:leiningen_root = root
         let b:java_root = root
         break
@@ -113,7 +128,7 @@ function! s:scrape_path(root) abort
   let cwd = getcwd()
   try
     execute cd fnameescape(a:root)
-    let path = matchstr(system('lein -o classpath'), "[^\n]*\\ze\n*$")
+    let path = matchstr(system(b:leiningen.classpath_cmd), "[^\n]*\\ze\n*$")
     if v:shell_error
       return []
     endif
@@ -126,8 +141,8 @@ endfunction
 function! s:path() abort
   let conn = s:connect(0)
 
-  let projts = getftime(b:leiningen_root.'/project.clj')
-  let profts = getftime(expand('~/.lein/profiles.clj'))
+  let projts = getftime(b:leiningen.local_manifest)
+  let profts = getftime(b:leiningen.global_manifest)
   let cache = expand(g:classpath_cache . '/') . substitute(b:leiningen_root, '[:\/]', '%', 'g')
 
   let ts = getftime(cache)
@@ -138,7 +153,7 @@ function! s:path() abort
     let ts = +get(conn.eval('(.getStartTime (java.lang.management.ManagementFactory/getRuntimeMXBean))', {'session': '', 'ns': 'user'}), 'value', '-2000')[0:-4]
     if ts > projts && ts > profts
       let response = conn.eval(
-            \ '[(System/getProperty "path.separator") (System/getProperty "java.class.path")]',
+            \ '[(System/getProperty "path.separator") (or (System/getProperty "fake.class.path") (System/getProperty "java.class.path"))]',
             \ {'session': '', 'ns': 'user'})
       let path = split(eval(response.value[5:-2]), response.value[2])
       call writefile([join(path, ',')], cache)
