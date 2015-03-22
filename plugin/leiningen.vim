@@ -103,8 +103,13 @@ function! s:detect(file) abort
         let b:java_root = root
         break
       elseif filereadable(root . '/build.boot')
+        if $BOOT_HOME
+          let boot_home = $BOOT_HOME
+        else
+          let boot_home = expand('~/.boot')
+        endif
         let b:leiningen = { "local_manifest": root.'/build.boot',
-                          \ "global_manifest": expand('~/.profile.boot'),
+                          \ "global_manifest": boot_home.'/.profile.boot',
                           \ "root": root,
                           \ "repl_cmd": "boot repl",
                           \ "classpath_cmd": "boot show --fake-classpath" }
