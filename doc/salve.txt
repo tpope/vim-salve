@@ -1,0 +1,72 @@
+*salve.txt*  Static support for Leiningen/Boot
+
+Author:  Tim Pope <http://tpo.pe/>
+License: Same terms as Vim itself (see |license|)
+
+INTRODUCTION                                    *salve*
+
+Salve.vim automatically activates when it finds a project.clj
+or build.boot in a parent directory of the current file. Most
+functionality depends on the classpath, so `lein classpath` or `boot
+show --fake-classpath` is run on an initial load and cached until the
+project manifest changes. For Leiningen, the project manifests includes
+project.clj and ~/.lein/profiles.clj. For Boot, the project manifests
+are build.boot and ~/.boot/profile.boot.
+
+REPL SUPPORT                                    *salve-repl*
+
+Each time |fireplace| attempts to use a repl connection, salve.vim will
+try to automatically connect using target/repl-port or target/repl/repl-port.
+(Fireplace itself supports the newer standard .nrepl-port.)  If none of the 3
+port files exist, :Console! (see below) is invoked to automatically start a
+repl.
+
+                                                *salve-:Console*
+:Console                Invoke `lein repl` or `boot repl` using |:dispatch-:Start|.
+
+:Console!               Like :Console, but start in the background.
+
+If a suitably fresh repl is running when an updated classpath is required, it
+will be used instead of shelling out to determine the classpath.
+
+COMPILER                                        *salve-compiler*
+
+The included lein and boot compiler plugins are automatically invoked
+for Leiningen or Boot projects so that |:make| (or |dispatch-:Make|)
+will invoke `lein` or `boot`. The 'errorformat' is adjusted to include
+the classpath, so that plugins like |fireplace| can parse stack traces.
+
+PROJECTIONS                                     *salve-projections*
+
+Leiningen/Boot projects are |projectionist| projects:
+
+* Alternating jumps between test and implementation.
+* The default :Start task is `lein run` for Leiningen projects, and `boot repl`
+  for Boot projects.
+* The default :Dispatch task is to run the tests for the current namespace.
+
+Additionally, the following navigation commands are provided:
+
+                                                *salve-:Emain*
+:Emain {file}           Edit a Clojure project file relative to any source
+                        (not test or resource) directory in the classpath.
+
+                                                *salve-:Esource*
+:Esource {file}         Edit a Clojure project file relative to the classpath.
+
+                                                *salve-:Etest*
+:Etest {file}           Edit a file matching one of **/*-test.clj,
+                        **/test/*.clj, **/t_*.clj, or **/*_spec.clj, relative
+                        to any project test directory in the classpath.
+
+                                                *salve-:Eresource*
+:Eresource {file}       Edit an arbitrary project file relative to the
+                        classpath.
+
+ABOUT                                           *salve-about*
+
+Grab the latest version or report a bug on GitHub:
+
+http://github.com/tpope/vim-salve
+
+ vim:tw=78:et:ft=help:norl:

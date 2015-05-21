@@ -1,10 +1,10 @@
-" Location: plugin/leiningen.vim
+" Location: plugin/salve.vim
 " Author:   Tim Pope <http://tpo.pe/>
 
-if exists('g:loaded_leiningen')
+if exists('g:loaded_salve')
   finish
 endif
-let g:loaded_leiningen = 1
+let g:loaded_salve = 1
 
 if !exists('g:classpath_cache')
   let g:classpath_cache = '~/.cache/vim/classpath'
@@ -15,11 +15,11 @@ if !isdirectory(expand(g:classpath_cache))
 endif
 
 function! s:portfile() abort
-  if !exists('b:leiningen_root')
+  if !exists('b:salve')
     return ''
   endif
 
-  let root = b:leiningen_root
+  let root = b:salve.root
   let portfiles = [root.'/.nrepl-port', root.'/target/repl-port', root.'/target/repl/repl-port']
 
   for f in portfiles
@@ -39,11 +39,11 @@ function! s:repl(background, args) abort
   let cd = exists('*haslocaldir') && haslocaldir() ? 'lcd' : 'cd'
   let cwd = getcwd()
   try
-    let cmd = b:leiningen.repl_cmd
-    execute cd fnameescape(b:leiningen_root)
+    let cmd = b:salve.repl_cmd
+    execute cd fnameescape(b:salve.root)
     if exists(':Start') == 2
       execute 'Start'.(a:background ? '!' : '') '-title='
-            \ . escape(fnamemodify(b:leiningen_root, ':t') . ' repl', ' ')
+            \ . escape(fnamemodify(b:salve.root, ':t') . ' repl', ' ')
             \ cmd.args
       if get(get(g:, 'dispatch_last_start', {}), 'handler', 'headless') ==# 'headless'
         return
@@ -72,21 +72,21 @@ function! s:repl(background, args) abort
 endfunction
 
 function! s:connect(autostart) abort
-  if !exists('b:leiningen_root') || !exists(':FireplaceConnect')
+  if !exists('b:salve') || !exists(':FireplaceConnect')
     return {}
   endif
   let portfile = s:portfile()
-  if !exists('g:leiningen_no_auto_repl') && a:autostart && empty(portfile) && exists(':Start') ==# 2
+  if !exists('g:salve_no_auto_repl') && a:autostart && empty(portfile) && exists(':Start') ==# 2
     call s:repl(1, '')
     let portfile = s:portfile()
   endif
 
   return empty(portfile) ? {} :
-        \ fireplace#register_port_file(portfile, b:leiningen_root)
+        \ fireplace#register_port_file(portfile, b:salve.root)
 endfunction
 
 function! s:detect(file) abort
-  if !exists('b:leiningen_root')
+  if !exists('b:salve')
     let root = simplify(fnamemodify(a:file, ':p:s?[\/]$??'))
     if !isdirectory(fnamemodify(root, ':h'))
       return ''
@@ -94,12 +94,13 @@ function! s:detect(file) abort
     let previous = ""
     while root !=# previous
       if filereadable(root . '/project.clj') && join(readfile(root . '/project.clj', '', 50)) =~# '(\s*defproject\%(\s*{{\)\@!'
-        let b:leiningen = { "local_manifest": root.'/project.clj',
+        let b:salve = { "local_manifest": root.'/project.clj',
                           \ "global_manifest": expand('~/.lein/profiles.clj'),
                           \ "root": root,
+                          \ "compiler": "lein",
                           \ "repl_cmd": "lein repl",
-                          \ "classpath_cmd": "lein -o classpath" }
-        let b:leiningen_root = root
+                          \ "classpath_cmd": "lein -o classpath",
+                          \ "start_cmd": "lein run" }
         let b:java_root = root
         break
       elseif filereadable(root . '/build.boot')
@@ -108,12 +109,13 @@ function! s:detect(file) abort
         else
           let boot_home = expand('~/.boot')
         endif
-        let b:leiningen = { "local_manifest": root.'/build.boot',
+        let b:salve = { "local_manifest": root.'/build.boot',
                           \ "global_manifest": boot_home.'/.profile.boot',
                           \ "root": root,
+                          \ "compiler": "boot",
                           \ "repl_cmd": "boot repl",
-                          \ "classpath_cmd": "boot show --fake-classpath" }
-        let b:leiningen_root = root
+                          \ "classpath_cmd": "boot show --fake-classpath",
+                          \ "start_cmd": "boot repl -s" }
         let b:java_root = root
         break
       endif
@@ -121,7 +123,7 @@ function! s:detect(file) abort
       let root = fnamemodify(root, ':h')
     endwhile
   endif
-  return exists('b:leiningen_root')
+  return exists('b:salve')
 endfunction
 
 function! s:split(path) abort
@@ -133,7 +135,7 @@ function! s:scrape_path(root) abort
   let cwd = getcwd()
   try
     execute cd fnameescape(a:root)
-    let path = matchstr(system(b:leiningen.classpath_cmd), "[^\n]*\\ze\n*$")
+    let path = matchstr(system(b:salve.classpath_cmd), "[^\n]*\\ze\n*$")
     if v:shell_error
       return []
     endif
@@ -146,9 +148,9 @@ endfunction
 function! s:path() abort
   let conn = s:connect(0)
 
-  let projts = getftime(b:leiningen.local_manifest)
-  let profts = getftime(b:leiningen.global_manifest)
-  let cache = expand(g:classpath_cache . '/') . substitute(b:leiningen_root, '[:\/]', '%', 'g')
+  let projts = getftime(b:salve.local_manifest)
+  let profts = getftime(b:salve.global_manifest)
+  let cache = expand(g:classpath_cache . '/') . substitute(b:salve.root, '[:\/]', '%', 'g')
 
   let ts = getftime(cache)
   if ts > projts && ts > profts
@@ -166,9 +168,9 @@ function! s:path() abort
   endif
 
   if !exists('path')
-    let path = s:scrape_path(b:leiningen_root)
+    let path = s:scrape_path(b:salve.root)
     if empty(path)
-      let path = map(['test', 'src', 'dev-resources', 'resources'], 'b:leiningen_root."/".v:val')
+      let path = map(['test', 'src', 'dev-resources', 'resources'], 'b:salve.root."/".v:val')
     endif
     call writefile([join(path, ',')], cache)
   endif
@@ -177,12 +179,12 @@ function! s:path() abort
 endfunction
 
 function! s:activate() abort
-  if !exists('b:leiningen_root')
+  if !exists('b:salve')
     return
   endif
   command! -buffer -bar -bang -nargs=* Console call s:repl(<bang>0, <q-args>)
-  compiler lein
-  let &l:errorformat .= ',' . escape('chdir '.b:leiningen_root, '\,')
+  execute "compiler ".b:salve.compiler
+  let &l:errorformat .= ',' . escape('chdir '.b:salve.root, '\,')
   let &l:errorformat .= ',' . escape('classpath,'.join(s:path()), '\,')
 endfunction
 
@@ -191,8 +193,8 @@ function! s:projectionist_detect() abort
     return
   endif
   let mypaths = map(filter(copy(s:path()),
-        \ 'strpart(v:val, 0, len(b:leiningen_root)) ==# b:leiningen_root'),
-        \ 'v:val[strlen(b:leiningen_root)+1:-1]')
+        \ 'strpart(v:val, 0, len(b:salve.root)) ==# b:salve.root'),
+        \ 'v:val[strlen(b:salve.root)+1:-1]')
   let projections = {}
   let main = []
   let test = []
@@ -212,8 +214,8 @@ function! s:projectionist_detect() abort
       let main += [path]
     endif
   endfor
-  let projections['*'] = {'start': 'lein run'}
-  call projectionist#append(b:leiningen_root, projections)
+  let projections['*'] = {'start': b:salve.start_cmd}
+  call projectionist#append(b:salve.root, projections)
   let projections = {}
 
   let proj = {'type': 'test', 'alternate': map(copy(main), 'v:val."/{}.clj"')}
@@ -239,10 +241,10 @@ function! s:projectionist_detect() abort
     endfor
     let projections[path.'/*.clj'] = proj
   endfor
-  call projectionist#append(b:leiningen_root, projections)
+  call projectionist#append(b:salve.root, projections)
 endfunction
 
-augroup leiningen
+augroup salve
   autocmd!
   autocmd User FireplacePreConnect call s:connect(1)
   autocmd FileType clojure
