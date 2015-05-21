@@ -76,7 +76,7 @@ function! s:connect(autostart) abort
     return {}
   endif
   let portfile = s:portfile()
-  if !exists('g:salve_no_auto_repl') && a:autostart && empty(portfile) && exists(':Start') ==# 2
+  if exists('g:salve_auto_start_repl') && a:autostart && empty(portfile) && exists(':Start') ==# 2
     call s:repl(1, '')
     let portfile = s:portfile()
   endif

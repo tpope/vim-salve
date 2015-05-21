@@ -13,6 +13,9 @@ project manifest changes. For Leiningen, the project manifests includes
 project.clj and ~/.lein/profiles.clj. For Boot, the project manifests
 are build.boot and ~/.boot/profile.boot.
 
+If `g:salve_auto_start_repl` is set, salve.vim will attempt to make a REPL
+connection for you.
+
 REPL SUPPORT                                    *salve-repl*
 
 Each time |fireplace| attempts to use a repl connection, salve.vim will
