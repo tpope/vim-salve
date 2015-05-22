@@ -160,7 +160,7 @@ function! s:activate() abort
   if !exists('b:leiningen_root')
     return
   endif
-  command! -bar -bang -nargs=* Console call s:repl(<bang>0, <q-args>)
+  command! -buffer -bar -bang -nargs=* Console call s:repl(<bang>0, <q-args>)
   compiler lein
   let &l:errorformat .= ',' . escape('chdir '.b:leiningen_root, '\,')
   let &l:errorformat .= ',' . escape('classpath,'.join(s:path()), '\,')
