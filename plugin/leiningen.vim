@@ -135,11 +135,11 @@ function! s:path() abort
     let path = split(get(readfile(cache), 0, ''), ',')
 
   elseif has_key(conn, 'path')
-    let ts = +get(conn.eval('(.getStartTime (java.lang.management.ManagementFactory/getRuntimeMXBean))', {'session': ''}), 'value', '-2000')[0:-4]
+    let ts = +get(conn.eval('(.getStartTime (java.lang.management.ManagementFactory/getRuntimeMXBean))', {'session': '', 'ns': 'user'}), 'value', '-2000')[0:-4]
     if ts > projts && ts > profts
       let response = conn.eval(
             \ '[(System/getProperty "path.separator") (System/getProperty "java.class.path")]',
-            \ {'session': ''})
+            \ {'session': '', 'ns': 'user'})
       let path = split(eval(response.value[5:-2]), response.value[2])
       call writefile([join(path, ',')], cache)
     endif
