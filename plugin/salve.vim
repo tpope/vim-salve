@@ -203,6 +203,7 @@ function! s:projectionist_detect() abort
     let projections[path.'/*'] = {'type': 'resource'}
     if path !~# 'target\|resources'
       let projections[path.'/*.clj'] = {'type': 'source', 'template': ['(ns {dot|hyphenate})']}
+      let projections[path.'/*.cljc'] = {'type': 'source', 'template': ['(ns {dot|hyphenate})']}
       let projections[path.'/*.java'] = {'type': 'source'}
     endif
     if path =~# 'resource'
@@ -219,27 +220,40 @@ function! s:projectionist_detect() abort
   let projections = {}
 
   let proj = {'type': 'test', 'alternate': map(copy(main), 'v:val."/{}.clj"')}
+  let proj = {'type': 'test', 'alternate': map(copy(main), 'v:val."/{}.cljc"')}
   for path in test
     let projections[path.'/*_test.clj'] = proj
+    let projections[path.'/*_test.cljc'] = proj
     let projections[path.'/**/test/*.clj'] = proj
+    let projections[path.'/**/test/*.cljc'] = proj
     let projections[path.'/**/t_*.clj'] = proj
+    let projections[path.'/**/t_*.cljc'] = proj
     let projections[path.'/**/test_*.clj'] = proj
+    let projections[path.'/**/test_*.cljc'] = proj
     let projections[path.'/*.clj'] = {'dispatch': ':RunTests {dot|hyphenate}'}
+    let projections[path.'/*.cljc'] = {'dispatch': ':RunTests {dot|hyphenate}'}
   endfor
   for path in spec
     let projections[path.'/*_spec.clj'] = proj
+    let projections[path.'/*_spec.cljc'] = proj
   endfor
 
   for path in main
     let proj = {'type': 'main', 'alternate': map(copy(spec), 'v:val."/{}_spec.clj"')}
+    let proj = {'type': 'main', 'alternate': map(copy(spec), 'v:val."/{}_spec.cljc"')}
     for tpath in test
       call extend(proj.alternate, [
             \ tpath.'/{}_test.clj',
+            \ tpath.'/{}_test.cljc',
             \ tpath.'/{dirname}/test/{basename}.clj',
+            \ tpath.'/{dirname}/test/{basename}.cljc',
             \ tpath.'/{dirname}/t_{basename}.clj',
-            \ tpath.'/{dirname}/t_{basename}.clj'])
+            \ tpath.'/{dirname}/t_{basename}.cljc',
+            \ tpath.'/{dirname}/t_{basename}.clj',
+            \ tpath.'/{dirname}/t_{basename}.cljc'])
     endfor
     let projections[path.'/*.clj'] = proj
+    let projections[path.'/*.cljc'] = proj
   endfor
   call projectionist#append(b:salve.root, projections)
 endfunction
