@@ -221,8 +221,8 @@ function! s:projectionist_detect() abort
   call projectionist#append(b:salve.root, projections)
   let projections = {}
 
-  let proj = {'type': 'test', 'alternate': map(copy(main), 'v:val."/{}.clj"')}
-  let proj = {'type': 'test', 'alternate': map(copy(main), 'v:val."/{}.cljc"')}
+  let proj = {'type': 'test', 'alternate': map(copy(main), 'v:val."/{}.clj"') +
+        \ map(copy(main), 'v:val."/{}.cljc"')}
   for path in test
     let projections[path.'/*_test.clj'] = proj
     let projections[path.'/*_test.cljc'] = proj
