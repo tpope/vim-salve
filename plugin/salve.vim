@@ -117,7 +117,7 @@ function! s:detect(file) abort
               \ "compiler": "boot",
               \ "repl_cmd": "boot repl",
               \ "classpath_cmd": "boot show --fake-classpath",
-              \ "start_cmd": "boot repl -s"}
+              \ "start_cmd": "boot repl"}
         let b:java_root = root
         break
       endif
