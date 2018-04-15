@@ -6,4 +6,8 @@ endif
 let current_compiler = "boot"
 
 CompilerSet makeprg=boot
-CompilerSet errorformat=%+G
+CompilerSet errorformat=%+G%.%#
+      \,%\\&console=repl
+      \,%\\&default=test
+      \,%\\&start=repl
+      \,%\\&terminal=repl%\\>%\\ze%.%#

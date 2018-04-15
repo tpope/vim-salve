@@ -185,9 +185,12 @@ function! s:activate() abort
     return
   endif
   command! -buffer -bar -bang -nargs=* Console call s:repl(<bang>0, <q-args>)
-  execute "compiler ".b:salve.compiler
+  execute 'compiler' b:salve.compiler
   let &l:errorformat .= ',' . escape('chdir '.b:salve.root, '\,')
   let &l:errorformat .= ',' . escape('classpath,'.join(s:path()), '\,')
+  if get(b:, 'dispatch') =~# ':RunTests '
+    let &l:errorformat .= ',%\&buffer=test ' . matchstr(b:dispatch, ':RunTests \zs.*')
+  endif
 endfunction
 
 function! s:projectionist_detect() abort

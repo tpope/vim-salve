@@ -6,4 +6,8 @@ endif
 let current_compiler = "lein"
 
 CompilerSet makeprg=lein
-CompilerSet errorformat=%+G
+CompilerSet errorformat=%+G%.%#
+      \,%\\&console=repl
+      \,%\\&default=test
+      \,%\\&start=run
+      \,%\\&terminal=repl%\\>%\\ze%.%#
