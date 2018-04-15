@@ -105,14 +105,10 @@ function! s:detect(file) abort
         let b:java_root = root
         break
       elseif filereadable(root . '/build.boot')
-        if $BOOT_HOME
-          let boot_home = $BOOT_HOME
-        else
-          let boot_home = expand('~/.boot')
-        endif
+        let boot_home = len($BOOT_HOME) ? $BOOT_HOME : expand('~/.boot')
         let b:salve = {
               \ "local_manifest": root.'/build.boot',
-              \ "global_manifest": boot_home.'/.profile.boot',
+              \ "global_manifest": boot_home.'/profile.boot',
               \ "root": root,
               \ "compiler": "boot",
               \ "repl_cmd": "boot repl",
