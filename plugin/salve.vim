@@ -128,11 +128,11 @@ function! s:split(path) abort
   return split(a:path, has('win32') ? ';' : ':')
 endfunction
 
-function! s:scrape_path(root) abort
+function! s:scrape_path() abort
   let cd = exists('*haslocaldir') && haslocaldir() ? 'lcd' : 'cd'
   let cwd = getcwd()
   try
-    execute cd fnameescape(a:root)
+    execute cd fnameescape(b:salve.root)
     let path = matchstr(system(b:salve.classpath_cmd), "[^\n]*\\ze\n*$")
     if v:shell_error
       return []
@@ -166,7 +166,7 @@ function! s:path() abort
   endif
 
   if !exists('path')
-    let path = s:scrape_path(b:salve.root)
+    let path = s:scrape_path()
     if empty(path)
       let path = map(['test', 'src', 'dev-resources', 'resources'], 'b:salve.root."/".v:val')
     endif
@@ -183,7 +183,7 @@ function! s:activate() abort
   command! -buffer -bar -bang -nargs=* Console call s:repl(<bang>0, <q-args>)
   execute 'compiler' b:salve.compiler
   let &l:errorformat .= ',' . escape('chdir '.b:salve.root, '\,')
-  let &l:errorformat .= ',' . escape('classpath,'.join(s:path()), '\,')
+  let &l:errorformat .= ',' . escape('classpath,'.join(s:path(), ','), '\,')
   if get(b:, 'dispatch') =~# ':RunTests '
     let &l:errorformat .= ',%\&buffer=test ' . matchstr(b:dispatch, ':RunTests \zs.*')
   endif
