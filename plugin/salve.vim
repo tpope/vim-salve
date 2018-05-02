@@ -39,7 +39,7 @@ function! s:repl(background, args) abort
   let cd = exists('*haslocaldir') && haslocaldir() ? 'lcd' : 'cd'
   let cwd = getcwd()
   try
-    let cmd = b:salve.repl_cmd
+    let cmd = b:salve.start_cmd
     execute cd fnameescape(b:salve.root)
     if exists(':Start') == 2
       execute 'Start'.(a:background ? '!' : '') '-title='
@@ -99,9 +99,8 @@ function! s:detect(file) abort
               \ "global_manifest": expand('~/.lein/profiles.clj'),
               \ "root": root,
               \ "compiler": "lein",
-              \ "repl_cmd": "lein repl",
               \ "classpath_cmd": "lein -o classpath",
-              \ "start_cmd": "lein run"}
+              \ "start_cmd": "lein repl"}
         let b:java_root = root
         break
       elseif filereadable(root . '/build.boot')
@@ -111,7 +110,6 @@ function! s:detect(file) abort
               \ "global_manifest": boot_home.'/profile.boot',
               \ "root": root,
               \ "compiler": "boot",
-              \ "repl_cmd": "boot repl",
               \ "classpath_cmd": "boot show --fake-classpath",
               \ "start_cmd": "boot repl"}
         let b:java_root = root
