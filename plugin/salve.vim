@@ -81,8 +81,12 @@ function! s:connect(autostart) abort
     let portfile = s:portfile()
   endif
 
-  return empty(portfile) ? {} :
-        \ fireplace#register_port_file(portfile, b:salve.root)
+  try
+    return empty(portfile) ? {} :
+          \ fireplace#register_port_file(portfile, b:salve.root)
+  catch
+    return {}
+  endtry
 endfunction
 
 function! s:detect(file) abort
@@ -142,13 +146,16 @@ function! s:scrape_path() abort
 endfunction
 
 function! s:eval(conn, code, default) abort
-  if has_key(a:conn, 'message')
-    for msg in a:conn.message({'op': 'eval', 'code': a:code, 'session': '', 'ns': 'user'})
-      if has_key(msg, 'value')
-        return msg.value
-      endif
-    endfor
-  endif
+  try
+    if has_key(a:conn, 'message')
+      for msg in a:conn.message({'op': 'eval', 'code': a:code, 'session': '', 'ns': 'user'})
+        if has_key(msg, 'value')
+          return msg.value
+        endif
+      endfor
+    endif
+  catch
+  endtry
   return a:default
 endfunction
 
