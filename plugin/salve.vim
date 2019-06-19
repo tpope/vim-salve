@@ -141,6 +141,17 @@ function! s:scrape_path() abort
   endtry
 endfunction
 
+function! s:eval(conn, code, default) abort
+  if has_key(a:conn, 'message')
+    for msg in a:conn.message({'op': 'eval', 'code': a:code, 'session': '', 'ns': 'user'})
+      if has_key(msg, 'value')
+        return msg.value
+      endif
+    endfor
+  endif
+  return a:default
+endfunction
+
 function! s:path() abort
   let conn = s:connect(0)
 
@@ -152,14 +163,14 @@ function! s:path() abort
   if ts > projts && ts > profts
     let path = split(get(readfile(cache), 0, ''), ',')
 
-  elseif has_key(conn, 'eval')
-    let ts = +get(conn.eval('(.getStartTime (java.lang.management.ManagementFactory/getRuntimeMXBean))', {'session': '', 'ns': 'user'}), 'value', '-2000')[0:-4]
+  else
+    let ts = +s:eval(conn, '(.getStartTime (java.lang.management.ManagementFactory/getRuntimeMXBean))', '-2000')[0:-4]
     if ts > projts && ts > profts
-      let response = conn.eval(
-            \ '[(System/getProperty "path.separator") (or (System/getProperty "fake.class.path") (System/getProperty "java.class.path"))]',
-            \ {'session': '', 'ns': 'user'})
-      let path = split(eval(response.value[5:-2]), response.value[2])
-      call writefile([join(path, ',')], cache)
+      let value = s:eval(conn, '[(System/getProperty "path.separator") (or (System/getProperty "fake.class.path") (System/getProperty "java.class.path") "")]', '')
+      if len(value) > 8
+        let path = split(eval(value[5:-2]), value[2])
+        call writefile([join(path, ',')], cache)
+      endif
     endif
   endif
 
