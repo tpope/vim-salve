@@ -152,7 +152,7 @@ function! s:path() abort
   if ts > projts && ts > profts
     let path = split(get(readfile(cache), 0, ''), ',')
 
-  elseif has_key(conn, 'path')
+  elseif has_key(conn, 'eval')
     let ts = +get(conn.eval('(.getStartTime (java.lang.management.ManagementFactory/getRuntimeMXBean))', {'session': '', 'ns': 'user'}), 'value', '-2000')[0:-4]
     if ts > projts && ts > profts
       let response = conn.eval(
