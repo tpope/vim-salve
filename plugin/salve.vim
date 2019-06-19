@@ -152,6 +152,12 @@ function! s:eval(conn, code, default) abort
   return a:default
 endfunction
 
+function! s:my_paths(path) abort
+  return map(filter(copy(a:path),
+        \ 'strpart(v:val, 0, len(b:salve.root)) ==# b:salve.root'),
+        \ 'v:val[strlen(b:salve.root)+1:-1]')
+endfunction
+
 function! s:path() abort
   let conn = s:connect(0)
 
@@ -169,7 +175,11 @@ function! s:path() abort
       let value = s:eval(conn, '[(System/getProperty "path.separator") (or (System/getProperty "fake.class.path") (System/getProperty "java.class.path") "")]', '')
       if len(value) > 8
         let path = split(eval(value[5:-2]), value[2])
-        call writefile([join(path, ',')], cache)
+        if empty(s:my_paths(path))
+          unlet path
+        else
+          call writefile([join(path, ',')], cache)
+        endif
       endif
     endif
   endif
@@ -209,7 +219,7 @@ function! s:projectionist_detect() abort
   let main = []
   let test = []
   let spec = []
-  for path in mypaths
+  for path in s:my_paths(s:path())
     let projections[path.'/*'] = {'type': 'resource'}
     if path !~# 'target\|resources'
       let projections[path.'/*.clj'] = {'type': 'source', 'template': ['(ns {dot|hyphenate})']}
