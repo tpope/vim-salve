@@ -208,8 +208,8 @@ function! s:activate() abort
   endif
   command! -buffer -bar -bang -nargs=* Console call s:repl(<bang>0, <q-args>)
   execute 'compiler' b:salve.compiler
-  let &l:errorformat .= ',' . escape('chdir '.b:salve.root, '\,')
-  let &l:errorformat .= ',' . escape('classpath,'.join(s:path(), ','), '\,')
+  let &l:errorformat .= ',%\&' . escape('dir='.b:salve.root, '\,')
+  let &l:errorformat .= ',%\&' . escape('classpath='.join(s:path(), ','), '\,')
   if get(b:, 'dispatch') =~# ':RunTests '
     let &l:errorformat .= ',%\&buffer=test ' . matchstr(b:dispatch, ':RunTests \zs.*')
   endif
@@ -242,7 +242,6 @@ function! s:projectionist_detect() abort
       let main += [path]
     endif
   endfor
-  let projections['*'] = {'start': b:salve.start_cmd}
   call projectionist#append(b:salve.root, projections)
   let projections = {}
 

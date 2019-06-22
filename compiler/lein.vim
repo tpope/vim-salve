@@ -7,7 +7,6 @@ let current_compiler = "lein"
 
 CompilerSet makeprg=lein
 CompilerSet errorformat=%+G%.%#
-      \,%\\&console=repl
       \,%\\&default=test
-      \,%\\&start=run
-      \,%\\&terminal=repl%\\>%\\ze%.%#
+      \,%\\&start=repl
+      \,%\\&force_start=repl%\\>%\\ze%.%#
