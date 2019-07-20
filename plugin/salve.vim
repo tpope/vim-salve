@@ -147,8 +147,9 @@ endfunction
 
 function! s:eval(conn, code, default) abort
   try
-    if has_key(a:conn, 'message')
-      for msg in a:conn.message({'op': 'eval', 'code': a:code, 'session': '', 'ns': 'user'})
+    if has_key(a:conn, 'message') || has_key(a:conn, 'Message')
+      let request = {'op': 'eval', 'code': a:code, 'session': '', 'ns': 'user'}
+      for msg in has_key(a:conn, 'message') ? a:conn.message(request, type([])) : a:conn.Message(request, type([]))
         if has_key(msg, 'value')
           return msg.value
         endif
