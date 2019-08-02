@@ -5,13 +5,11 @@ License: Same terms as Vim itself (see |license|)
 
 INTRODUCTION                                    *salve*
 
-Salve.vim automatically activates when it finds a project.clj
-or build.boot in a parent directory of the current file. Most
-functionality depends on the classpath, so `lein classpath` or `boot
-show --fake-classpath` is run on an initial load and cached until the
-project manifest changes. For Leiningen, the project manifests includes
-project.clj and ~/.lein/profiles.clj. For Boot, the project manifests
-are build.boot and ~/.boot/profile.boot.
+Salve.vim automatically activates when it finds a project.clj, build.boot, or
+deps.edn in a parent directory of the current file.  Most functionality
+depends on the classpath, so `lein classpath`, `boot show --fake-classpath`,
+or `clojure -Spath` is run on an initial load and cached until the project
+manifest or global config file changes.
 
 If `g:salve_auto_start_repl` is set, salve.vim will attempt to make a REPL
 connection for you.
@@ -25,7 +23,8 @@ port files exist, :Console! (see below) is invoked to automatically start a
 repl.
 
                                                 *salve-:Console*
-:Console                Invoke `lein repl` or `boot repl` using |:dispatch-:Start|.
+:Console                Invoke `lein repl`, `boot repl`, or
+                        `clojure -m nrepl.cmdline` using |:dispatch-:Start|.
 
 :Console!               Like :Console, but start in the background.
 
@@ -34,18 +33,17 @@ will be used instead of shelling out to determine the classpath.
 
 COMPILER                                        *salve-compiler*
 
-The included lein and boot compiler plugins are automatically invoked
-for Leiningen or Boot projects so that |:make| (or |dispatch-:Make|)
-will invoke `lein` or `boot`. The 'errorformat' is adjusted to include
-the classpath, so that plugins like |fireplace| can parse stack traces.
+The appropriate included compiler plugin is automatically invoked so that
+|:make| (or |dispatch-:Make|) will invoke `lein`, `boot`, or `clojure`.  The
+'errorformat' is adjusted to include the classpath, so that plugins like
+|fireplace| can parse stack traces.
 
 PROJECTIONS                                     *salve-projections*
 
 Leiningen/Boot projects are |projectionist| projects:
 
 * Alternating jumps between test and implementation.
-* The default :Start task is `lein run` for Leiningen projects, and `boot repl`
-  for Boot projects.
+* The default :Start task is the same command run by |salve-:Console|.
 * The default :Dispatch task is to run the tests for the current namespace.
 
 Additionally, the following navigation commands are provided:

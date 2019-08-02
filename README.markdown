@@ -1,6 +1,6 @@
 # salve.vim
 
-Static Vim support for [Leiningen][] and [Boot][].
+Static Vim support for [Leiningen][], [Boot][], and the [Clojure CLI][].
 
 > Leiningen ran... [the ants] would get to him soon, despite the salve on
 > his boots.
@@ -15,13 +15,15 @@ Static Vim support for [Leiningen][] and [Boot][].
 * [Navigation commands][projectionist.vim]: `:Esource`, `:Emain`, `:Etest`,
   and `:Eresource`.
 * Alternate between test and implementation with `:A`.
-* Use `:make` to invoke `lein` or `boot`, complete with stacktrace parsing.
+* Use `:make` to invoke `lein`, `boot`, or `clojure`, complete with stacktrace
+  parsing.
 * Default [dispatch.vim][]'s `:Dispatch` to running the associated test file.
 * `'path'` is seeded with the classpath to enable certain static Vim and
   [fireplace.vim][] behaviors.
 
 [Leiningen]: http://leiningen.org/
 [Boot]: http://boot-clj.com/
+[Clojure CLI]: https://clojure.org/guides/deps_and_cli
 [fireplace.vim]: https://github.com/tpope/vim-fireplace
 [dispatch.vim]: https://github.com/tpope/vim-dispatch
 [projectionist.vim]: https://github.com/tpope/vim-projectionist
@@ -51,7 +53,8 @@ not, this means a call to `lein classpath` or `boot show --fake-classpath`.
 
 Once retrieved, the classpath is cached until a project manifest file
 changes: for Leiningen `project.clj` or `~/.lein/profiles.clj`, for Boot
-`build.boot` or `~/.boot/profile.boot`.
+`build.boot` or `~/.boot/profile.boot`, for the Clojure CLI `deps.edn` or
+`~/.clojure/deps.edn`.
 
 ## License
 

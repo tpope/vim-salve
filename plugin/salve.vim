@@ -10,6 +10,13 @@ if !exists('g:classpath_cache')
   let g:classpath_cache = '~/.cache/vim/classpath'
 endif
 
+if !exists('g:salve_edn_deps')
+  let g:salve_edn_deps = '{:deps {cider/cider-nrepl {:mvn/version "RELEASE"} }}'
+endif
+if !exists('g:salve_edn_middleware')
+  let g:salve_edn_middleware = '[cider.nrepl/cider-middleware]'
+endif
+
 if !isdirectory(expand(g:classpath_cache))
   call mkdir(expand(g:classpath_cache), 'p')
 endif
@@ -118,6 +125,15 @@ function! s:detect(file) abort
               \ "start_cmd": "boot repl"}
         let b:java_root = root
         break
+      elseif filereadable(root . '/deps.edn')
+        let b:salve = {
+              \ "local_manifest": root.'/deps.edn',
+              \ "global_manifest": expand('~/.clojure/deps.edn'),
+              \ "root": root,
+              \ "compiler": "clojure",
+              \ "classpath_cmd": "clojure -Spath",
+              \ "start_cmd": "clojure -Sdeps " . shellescape(g:salve_edn_deps) . " -m nrepl.cmdline --interactive --middleware " . shellescape(g:salve_edn_middleware)}
+        let b:java_root = root
       endif
       let previous = root
       let root = fnamemodify(root, ':h')
@@ -130,6 +146,14 @@ function! s:split(path) abort
   return split(a:path, has('win32') ? ';' : ':')
 endfunction
 
+function! s:absolute(path, parent) abort
+  if a:path =~# '^/\|^\a\+:'
+    return a:path
+  else
+    return a:parent . (exists('+shellslash') && !&shellslash ? '\' : '/') . a:path
+  endif
+endfunction
+
 function! s:scrape_path() abort
   let cd = exists('*haslocaldir') && haslocaldir() ? 'lcd' : 'cd'
   let cwd = getcwd()
@@ -139,7 +163,7 @@ function! s:scrape_path() abort
     if v:shell_error
       return []
     endif
-    return s:split(path)
+    return map(s:split(path), 's:absolute(v:val, b:salve.root)')
   finally
     execute cd fnameescape(cwd)
   endtry
@@ -167,8 +191,6 @@ function! s:my_paths(path) abort
 endfunction
 
 function! s:path() abort
-  let conn = s:connect(0)
-
   let projts = getftime(b:salve.local_manifest)
   let profts = getftime(b:salve.global_manifest)
   let cache = expand(g:classpath_cache . '/') . substitute(b:salve.root, '[:\/]', '%', 'g')
@@ -177,7 +199,8 @@ function! s:path() abort
   if ts > projts && ts > profts
     let path = split(get(readfile(cache), 0, ''), ',')
 
-  else
+  elseif b:salve.compiler !=# 'clojure'
+    let conn = s:connect(0)
     let ts = +s:eval(conn, '(.getStartTime (java.lang.management.ManagementFactory/getRuntimeMXBean))', '-2000')[0:-4]
     if ts > projts && ts > profts
       let value = s:eval(conn, '[(System/getProperty "path.separator") (or (System/getProperty "fake.class.path") (System/getProperty "java.class.path") "")]', '')
