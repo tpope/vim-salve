@@ -27,7 +27,7 @@ function! s:portfile() abort
   endif
 
   let root = b:salve.root
-  let portfiles = [root.'/.nrepl-port', root.'/target/repl-port', root.'/target/repl/repl-port']
+  let portfiles = get(b:salve, 'portfiles', []) + [root.'/.nrepl-port', root.'/target/repl-port', root.'/target/repl/repl-port']
 
   for f in portfiles
     if getfsize(f) > 0
@@ -134,6 +134,15 @@ function! s:detect(file) abort
               \ "classpath_cmd": "clojure -Spath",
               \ "start_cmd": "clojure -Sdeps " . shellescape(g:salve_edn_deps) . " -m nrepl.cmdline --interactive --middleware " . shellescape(g:salve_edn_middleware)}
         let b:java_root = root
+      elseif filereadable(root . '/shadow-cljs.edn')
+        let b:salve = {
+              \ "local_manifest": root . '/shadow-cljs.edn',
+              \ "global_manifest": expand('~/.shadow-cljs/config.edn'),
+              \ "root": root,
+              \ "compiler": "shadowcljs",
+              \ "portfiles": [root . "/.shadow-cljs/nrepl.port"],
+              \ "classpath_cmd": "npx shadow-cljs classpath",
+              \ "start_cmd": "npx shadow-cljs clj-repl"}
       endif
       let previous = root
       let root = fnamemodify(root, ':h')
