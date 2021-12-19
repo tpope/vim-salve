@@ -96,15 +96,29 @@ function! s:connect(autostart) abort
   endtry
 endfunction
 
+function! s:fcall(fn, path, ...) abort
+  let ns = matchstr(a:path, '^\a\a\+\ze:')
+  if len(ns) && exists('*' . ns . '#' . a:fn)
+    return call(ns . '#' . a:fn, [a:path] + a:000)
+  else
+    return call(a:fn, [a:path] + a:000)
+  endif
+endfunction
+
+function! s:filereadable(path) abort
+  if exists('*ProjectionistHas')
+    return call('ProjectionistHas', [a:path])
+  else
+    return s:fcall('filereadable', a:path)
+  endif
+endfunction
+
 function! s:detect(file) abort
   if !exists('b:salve')
-    let root = simplify(fnamemodify(a:file, ':p:s?[\/]$??'))
-    if !isdirectory(fnamemodify(root, ':h'))
-      return ''
-    endif
+    let root = a:file
     let previous = ""
-    while root !=# previous
-      if filereadable(root . '/project.clj') && join(readfile(root . '/project.clj', '', 50)) =~# '(\s*defproject\%(\s*{{\)\@!'
+    while root !=# previous && root !~# '^\.\=$\|^[\/][\/][^\/]*$'
+      if s:filereadable(root . '/project.clj') && join(s:fcall('readfile', root . '/project.clj', '', 50)) =~# '(\s*defproject\%(\s*{{\)\@!'
         let b:salve = {
               \ "local_manifest": root.'/project.clj',
               \ "global_manifest": expand('~/.lein/profiles.clj'),
@@ -114,7 +128,7 @@ function! s:detect(file) abort
               \ "start_cmd": "lein repl"}
         let b:java_root = root
         break
-      elseif filereadable(root . '/build.boot')
+      elseif s:filereadable(root . '/build.boot')
         let boot_home = len($BOOT_HOME) ? $BOOT_HOME : expand('~/.boot')
         let b:salve = {
               \ "local_manifest": root.'/build.boot',
@@ -125,7 +139,7 @@ function! s:detect(file) abort
               \ "start_cmd": "boot repl"}
         let b:java_root = root
         break
-      elseif filereadable(root . '/deps.edn')
+      elseif s:filereadable(root . '/deps.edn')
         let b:salve = {
               \ "local_manifest": root.'/deps.edn',
               \ "global_manifest": expand('~/.clojure/deps.edn'),
@@ -134,7 +148,7 @@ function! s:detect(file) abort
               \ "classpath_cmd": "clojure -Spath",
               \ "start_cmd": "clojure -Sdeps " . shellescape(g:salve_edn_deps) . " -m nrepl.cmdline --interactive --middleware " . shellescape(g:salve_edn_middleware)}
         let b:java_root = root
-      elseif filereadable(root . '/shadow-cljs.edn')
+      elseif s:filereadable(root . '/shadow-cljs.edn')
         let b:salve = {
               \ "local_manifest": root . '/shadow-cljs.edn',
               \ "global_manifest": expand('~/.shadow-cljs/config.edn'),
