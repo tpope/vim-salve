@@ -187,6 +187,8 @@ function! s:scrape_path() abort
       return []
     endif
     return map(s:split(path), 's:absolute(v:val, b:salve.root)')
+  catch /^Vim\%((\a\+)\)\=:E472:/
+    return []
   finally
     execute cd fnameescape(cwd)
   endtry
