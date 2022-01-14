@@ -1,7 +1,7 @@
 " Location: plugin/salve.vim
 " Author:   Tim Pope <http://tpo.pe/>
 
-if exists('g:loaded_salve')
+if exists('g:loaded_salve') || v:version < 800
   finish
 endif
 let g:loaded_salve = 1
@@ -43,7 +43,7 @@ function! s:repl(background, args) abort
   if a:background && !empty(portfile)
     return
   endif
-  let cd = exists('*haslocaldir') && haslocaldir() ? 'lcd' : 'cd'
+  let cd = haslocaldir() ? 'lcd' : 'cd'
   let cwd = getcwd()
   try
     let cmd = b:salve.start_cmd
@@ -178,7 +178,7 @@ function! s:absolute(path, parent) abort
 endfunction
 
 function! s:scrape_path() abort
-  let cd = exists('*haslocaldir') && haslocaldir() ? 'lcd' : 'cd'
+  let cd = haslocaldir() ? 'lcd' : 'cd'
   let cwd = getcwd()
   try
     execute cd fnameescape(b:salve.root)
