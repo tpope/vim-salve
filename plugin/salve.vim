@@ -262,6 +262,9 @@ function! s:activate() abort
   if get(b:, 'dispatch') =~# ':RunTests '
     let &l:errorformat .= ',%\&buffer=test ' . matchstr(b:dispatch, ':RunTests \zs.*')
   endif
+  if &filetype =~# '\<clojure\>'
+   let &l:path = join(s:path(), ',')
+  endif
 endfunction
 
 function! s:projectionist_detect() abort
@@ -337,13 +340,13 @@ augroup salve
   autocmd!
   autocmd User FireplacePreConnect call s:connect(1)
   autocmd FileType clojure
-        \ if s:detect(expand('%:p')) |
+        \ if exists('b:salve') |
         \  let &l:path = join(s:path(), ',') |
         \ endif
   autocmd User ProjectionistDetect call s:projectionist_detect()
   autocmd User ProjectionistActivate call s:activate()
   autocmd BufReadPost *
-        \ if !exists(':ProjectDo') && s:detect(expand('%:p')) |
+        \ if !exists('*ProjectionistHas') && s:detect(expand('%:p')) |
         \  call s:activate() |
         \ endif
 augroup END
