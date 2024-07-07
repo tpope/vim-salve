@@ -30,18 +30,19 @@ Static Vim support for [Leiningen][], [Boot][], and the [Clojure CLI][].
 
 ## Installation
 
-If you don't have a preferred installation method, I recommend
-installing [pathogen.vim](https://github.com/tpope/vim-pathogen), and
-then simply copy and paste:
+Install using your favorite package manager, or use Vim's built-in package
+support:
 
-    cd ~/.vim/bundle
-    git clone git://github.com/tpope/vim-salve.git
-    git clone git://github.com/tpope/vim-projectionist.git
-    git clone git://github.com/tpope/vim-dispatch.git
-    git clone git://github.com/tpope/vim-fireplace.git
-
-Once help tags have been generated, you can view the manual with
-`:help salve`.
+    mkdir -p ~/.vim/pack/tpope/start
+    cd ~/.vim/pack/tpope/start
+    git clone https://tpope.io/vim/salve.git
+    git clone https://tpope.io/vim/projectionist.git
+    git clone https://tpope.io/vim/dispatch.git
+    git clone https://tpope.io/vim/fireplace.git
+    vim -u NONE -c "helptags salve/doc" -c q
+    vim -u NONE -c "helptags projectionist/doc" -c q
+    vim -u NONE -c "helptags dispatch/doc" -c q
+    vim -u NONE -c "helptags fireplace/doc" -c q
 
 ## FAQ
 
